@@ -1,0 +1,179 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+#imagen-principal {
+    width: 50vw;        /* 50% del ancho de la ventana */
+    height: auto;       /* mantiene proporción */
+    display: block;
+    margin: 0 auto;     /* centra la imagen */
+}
+
+
+body {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url(fondo.jpg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: #fff;
+}
+
+/* LOGO COMICK */
+.logo-comick {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.logo-comick img {
+    width: 140px;
+}
+
+.container-form {
+    width: 90%;
+    height: 90vh;
+    display: flex;
+    justify-content: space-around;
+    transition: all .5s ease-out;
+}
+
+.welcome-back {
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+.message {
+    padding: 1rem;
+}
+
+.message h2 {
+    font-size: 1.7rem;
+    padding: 1rem 0;
+}
+
+.message button {
+    padding: 1rem;
+    font-weight: 400;
+    background-color: #e76f51;
+    border-radius: 2rem;
+    border: none;
+    cursor: pointer;
+    font-size: .9rem;
+    margin-top: 2rem;
+    transition: .3s;
+    color: #fff;
+}
+
+.message button:hover {
+    background-color: #f28a60;
+}
+
+.formulario {
+    width: 400px;
+    padding: 1rem;
+    margin: 2rem;
+    background-color: rgba(0,0,0,0.65);
+    text-align: center;
+    border-radius: 10px;
+}
+
+.create-account {
+    padding: 2rem 0;
+    font-size: 1.7rem;
+}
+
+.cuenta-gratis {
+    padding: 1rem 0;
+}
+
+.formulario input {
+    width: 70%;
+    display: block;
+    margin: auto;
+    margin-bottom: 2rem;
+    background-color: transparent;
+    border: none;
+    border-bottom: white thin solid;
+    text-align: center;
+    outline: none;
+    padding: .2rem 0;
+    font-size: .9rem;
+    color: white;
+}
+
+.formulario input[type="submit"] {
+    width: 60%;
+    border: solid thin white;
+    padding: .7rem;
+    border-radius: 2rem;
+    background-color: white;
+    font-weight: 600;
+    margin-top: 3rem;
+    font-size: .8rem;
+    cursor: pointer;
+    color: #222;
+}
+
+.sign-in {
+    position: absolute;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.sign-in.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sign-up.active {
+    opacity: 0;
+    visibility: hidden;
+}
+.producto img[src*="estr.png"] {
+    width: 350px;
+    height: 350px;
+    object-fit: cover;
+}
+img.logo { 
+    background:#0a0a0a;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    padding:20px;
+    position: relative;
+}
+
+img.logo { 
+    width:100px;
+    position:absolute;
+    top:20px;
+    left:20px;
+}
+.form-container { 
+    background: #222; 
+    padding: 100px 30px 40px 30px; /* Aumentamos padding-top para bajar todo el contenido */
+    border-radius: 15px; 
+    width: 380px; 
+    text-align: center; 
+    color: #fff; 
+    border: 6px solid #ff9800; 
+    box-shadow: 15px 15px 0 #e53935; 
+}
+
+/* Logo visible y centrado */
+.form-container img { 
+    width: 180px; /* Más grande para destacar */
+    margin: -80px auto 30px auto; /* Baja el logo y separa del título */
+    display: block;
+    border: 4px solid #ffeb3b; 
+    border-radius: 50%; 
+    box-shadow: 5px 5px 0 #e53935; 
+    background-color: #000; 
+}
