@@ -6,7 +6,7 @@
 <title>Comick Burger - Inicio</title>
 <link rel="stylesheet" href="css/estilos.css">
 <style>
-/* Estilos solo para Index */
+
 body {
     background-color: #000;
     color: #fff;
@@ -65,22 +65,21 @@ h1 {
 <body>
 
 <div class="main-content">
-    <img src="imagenes/logo1.png" alt="Comick Burger Logo">
+    <img src="assets/logo1.png" alt="Comick Burger Logo">
     <h1>¡Bienvenido a Comick Burger!</h1>
     
     <div class="nav-buttons">
-        <!-- El botón "Menú" ahora dirige a la galería de productos -->
-        <a href="galeria.php">🍔 Ver Menú / Galería</a>
+    
+        <a href="galeria.php">🍔  Galería</a>
         
         <?php if (isset($_SESSION['id_cliente'])): ?>
-            <!-- Si está logueado, ve el botón de cerrar sesión -->
+
             <a href="cerrar.php" class="logout">🚪 Cerrar Sesión</a>
         <?php else: ?>
-             <!-- Si no está logueado, puede ir a la página unificada de autenticación -->
-            <a href="galeria.php">🔑 Iniciar / Registrarse</a>
+          
+            <a href="registro.php">🔑  Registrarse</a>
         <?php endif; ?>
 
-        <!-- El carrito se accede desde la galería -->
         
     </div>
 </div>

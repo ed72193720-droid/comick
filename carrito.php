@@ -2,7 +2,33 @@
 session_start();
 include 'includes/connect.php';
 
-// Inicialización
+if (!isset($_SESSION['cliente_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validar acción y datos enviados
+    $action = $_POST['action'] ?? '';
+    $id = $_POST['id'] ?? null;
+    $cantidad = isset($_POST['cantidad']) ? max(1, intval($_POST['cantidad'])) : null;
+
+    if ($action === 'actualizar' && $id && $cantidad) {
+        if (isset($_SESSION['carrito'][$id])) {
+            $_SESSION['carrito'][$id]['cantidad'] = $cantidad;
+            $_SESSION['carrito'][$id]['subtotal'] = $_SESSION['carrito'][$id]['precio'] * $cantidad;
+        }
+    } elseif ($action === 'eliminar' && $id) {
+        if (isset($_SESSION['carrito'][$id])) {
+            unset($_SESSION['carrito'][$id]);
+        }
+    }
+
+    header("Location: carrito.php");
+    exit();
+}
+
+// === Inicialización ===
 $carrito = $_SESSION['carrito'] ?? [];
 $total_orden = 0;
 
@@ -11,7 +37,6 @@ if (empty($carrito)) {
     unset($_SESSION['carrito']);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -48,10 +73,10 @@ h1 { margin:0; font-size:35px; color:#ffeb3b; text-shadow:4px 4px #e53935; line-
 <body>
 
 <header>
-    <img src="imagenes/logo1.png" alt="Logo Comick Burger">
+    <img src="assets/logo1.png" alt="Logo Comick Burger">
     <h1>EL BOTÍN DE LA MISIÓN</h1>
     <div class="top-nav">
-        <a href="registro.php">🦸‍♀️  </a>
+        <a href="registro.php">🦸‍♀️ REGISTRARME </a>
     </div>
 </header>
 
@@ -65,13 +90,15 @@ h1 { margin:0; font-size:35px; color:#ffeb3b; text-shadow:4px 4px #e53935; line-
 <?php else: ?>
 
     <?php foreach($carrito as $id => $item): 
-        $total_orden += $item['subtotal'];
+        $subtotal = $item['precio'] * $item['cantidad'];
+        $total_orden += $subtotal;
     ?>
     <div class="cart-item">
         <div class="item-details">
             <h3><?php echo htmlspecialchars($item['nombre']); ?></h3>
             <p>Precio Unitario: $<?php echo number_format($item['precio'],2); ?> MXN</p>
         </div>
+
         <div class="item-controls">
             <!-- Actualizar cantidad -->
             <form method="POST" action="carrito.php">
@@ -80,7 +107,7 @@ h1 { margin:0; font-size:35px; color:#ffeb3b; text-shadow:4px 4px #e53935; line-
                 <input type="number" name="cantidad" value="<?php echo htmlspecialchars($item['cantidad']); ?>" min="1" onchange="this.form.submit()">
             </form>
 
-            <p>Subtotal: $<?php echo number_format($item['subtotal'],2); ?> MXN</p>
+            <p>Subtotal: $<?php echo number_format($subtotal,2); ?> MXN</p>
 
             <!-- Eliminar producto -->
             <form method="POST" action="carrito.php">
@@ -104,11 +131,11 @@ h1 { margin:0; font-size:35px; color:#ffeb3b; text-shadow:4px 4px #e53935; line-
         <?php else: ?>
             <div class="action-buttons-login-register">
                 <a href="registro.php" class="btn-register">¡REGÍSTRATE AHORA!</a>
-                <a href="login.php" class="btn-checkout">AUTENTICAR Y PAGAR &gt;</a>
+             <a href="metodo_pago.php" class="btn-checkout">PAGAR</a>
             </div>
         <?php endif; ?>
     </div>
-
+   
 <?php endif; ?>
 
 </div>
