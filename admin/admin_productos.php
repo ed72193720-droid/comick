@@ -1,12 +1,10 @@
 <?php
-session_start();
-require '../includes/connect.php';
+include_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/session.php';
+require __DIR__ . '/../includes/connect.php';
+require __DIR__ . '/../includes/helpers.php';
 
-// Protección de sesión de admin
-if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header("Location: admin_login.php");
-    exit();
-}
+requireAdmin('admin_login.php');
 
 // Agregar o eliminar producto
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {

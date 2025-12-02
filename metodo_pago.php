@@ -1,11 +1,9 @@
 <?php
-session_start();
-require 'includes/connect.php'; 
+require 'includes/session.php';
+require 'includes/connect.php';
+require 'includes/helpers.php';
 
-if (!isset($_SESSION['id_cliente'])) {
-    header("Location: login.php");
-    exit();
-}
+requireLogin('login.php');
 
 $pago_realizado = false;
 $message = "";
@@ -14,23 +12,22 @@ $metodo_pago = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $metodo_pago = $_POST['metodo_pago'] ?? '';
-    $direccion_entrega = trim($_POST['direccion_entrega'] ?? '');
+    $direccion_entrega = sanitizeInput($_POST['direccion_entrega'] ?? '', 200);
 
+    $metodos_validos = ['Tarjeta', 'Efectivo', 'Transferencia'];
+    
     if (empty($metodo_pago) || empty($direccion_entrega)) {
         $message = "¡ALTO! Faltan datos para la Misión de Pago.";
+    } elseif (!in_array($metodo_pago, $metodos_validos)) {
+        $message = "Método de pago inválido.";
     } else {
-        $id_cliente = $_SESSION['id_cliente'];
-        $total = 0;
-
-        if (isset($_SESSION['carrito']) && !empty($_SESSION['carrito'])) {
-            $total = 250.00; // Total simulación
-        }
+        $id_cliente = $_SESSION['cliente_id'];
+        $total = getCarritoTotal();
 
         if ($total > 0) {
             $estado = "Pendiente";
             $fecha = date("Y-m-d H:i:s");
 
-            // Ajuste a la columna correcta según tu tabla 'pedidos'
             $stmt_pedido = $conn->prepare("INSERT INTO pedidos (id_cliente, fecha, total, metodo_pago, estado) VALUES (?, ?, ?, ?, ?)");
             $stmt_pedido->bind_param("isdss", $id_cliente, $fecha, $total, $metodo_pago, $estado);
 
@@ -54,8 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Confirmación y Pago - Comick Burger</title>
-<link rel="stylesheet" href="css/estilos.css">
+<title>Método de Pago - Comick Burger</title>
 <style>
 body { 
     background-color: #000; 

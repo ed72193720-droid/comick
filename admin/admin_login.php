@@ -1,39 +1,42 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-session_start();
-require '../includes/connect.php';
+include_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/session.php';
+require __DIR__ . '/../includes/connect.php';
+require __DIR__ . '/../includes/helpers.php';
 
-// Redirige si ya está logueado
-if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
-    header("Location: admin_dashboard.php");
-    exit();
+if (isAdmin()) {
+    redirect('admin_dashboard.php');
 }
 
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $password = trim($_POST['password'] ?? '');
+    $email = validateEmail($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    if (empty($email)) { 
-        $message = "¡ALTO! El correo es obligatorio.";
+    if (!$email || empty($password)) { 
+        $message = "¡ALTO! El correo y contraseña son obligatorios.";
+    } elseif (!checkLoginAttempts($email)) {
+        $message = "Demasiados intentos fallidos. Intenta más tarde.";
     } else {
-        $stmt = $conn->prepare("SELECT id_admin, username, email FROM admin WHERE email = ?");
-        if (!$stmt) die("Error en la preparación de la consulta: " . $conn->error);
-
+        $stmt = $conn->prepare("SELECT id_admin, username, email, password FROM administradores WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        if ($result && $result->num_rows === 1) {
+        if ($result->num_rows === 1) {
             $admin = $result->fetch_assoc();
-            $_SESSION['admin_logged_in'] = true;
-            $_SESSION['usuario_admin'] = $admin['username'];
-            header("Location: admin_dashboard.php");
-            exit();
+            
+            if (password_verify($password, $admin['password'])) {
+                registerLoginAttempt($email, true);
+                setAdminSession($admin);
+                redirect('admin_dashboard.php');
+            } else {
+                registerLoginAttempt($email, false);
+                $message = "¡ERROR! Contraseña incorrecta.";
+            }
         } else {
+            registerLoginAttempt($email, false);
             $message = "¡ERROR! Usuario no encontrado.";
         }
 

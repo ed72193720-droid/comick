@@ -1,6 +1,6 @@
 <?php
-session_start();
-session_destroy();
-header("Location: admin_login.php");
-exit();
-?>
+require __DIR__ . '/../includes/session.php';
+
+destroySession();
+
+redirect('admin_login.php');

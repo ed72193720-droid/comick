@@ -1,21 +1,15 @@
 <?php
-session_start();
+require 'includes/session.php';
 require 'includes/connect.php';
 
-// Verificar que el cliente inició sesión
-if (!isset($_SESSION['cliente_id'])) {
-    header("Location: login_registro.php");
-    exit();
-}
+requireLogin('login.php');
 
 $cliente_id = $_SESSION['cliente_id'];
 
-// Obtener pedidos del cliente
-$sql = $conn->query("
-    SELECT * FROM pedidos 
-    WHERE id_cliente = $cliente_id 
-    ORDER BY fecha DESC
-");
+$stmt = $conn->prepare("SELECT * FROM pedidos WHERE id_cliente = ? ORDER BY fecha DESC");
+$stmt->bind_param("i", $cliente_id);
+$stmt->execute();
+$sql = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>

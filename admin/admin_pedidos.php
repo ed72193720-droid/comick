@@ -1,20 +1,10 @@
 <?php
-session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+include_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/session.php';
+require __DIR__ . '/../includes/connect.php';
+require __DIR__ . '/../includes/helpers.php';
 
-// Conexión segura
-require __DIR__ . '/../includes/connect.php'; 
-
-// Protección de sesión de administrador
-function check_admin_auth() {
-    if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-        header("Location: admin_login.php");
-        exit();
-    }
-}
-check_admin_auth();
+requireAdmin('admin_login.php');
 
 // Actualizar estado de pedido
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {

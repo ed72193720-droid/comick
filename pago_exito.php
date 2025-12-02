@@ -1,6 +1,6 @@
 <?php
-session_start();
-include 'conexion.php'; // Asegúrate de que este archivo exista
+require 'includes/session.php';
+require 'includes/connect.php';
 
 $pedido_id = isset($_GET['pedido']) ? intval($_GET['pedido']) : 0;
 $metodo_pago = '';

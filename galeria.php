@@ -1,15 +1,19 @@
 <?php
-session_start();
-require 'includes/connect.php';
+require_once __DIR__ . '/config/bootstrap.php';
+require_once __DIR__ . '/includes/session.php';
 
-$carrito_count = 0;
-if (isset($_SESSION['carrito']) && !empty($_SESSION['carrito'])) {
-    foreach ($_SESSION['carrito'] as $item) {
-        $carrito_count += intval($item['cantidad']);
-    }
+use App\Models\Producto;
+
+$productoModel = new Producto();
+$categoria = $_GET['categoria'] ?? 'todos';
+
+if ($categoria === 'todos') {
+    $productos = $productoModel->findAll();
+} else {
+    $productos = $productoModel->findByCategory($categoria);
 }
 
-$sql = $conn->query("SELECT * FROM productos");
+$carrito_count = getCarritoCount();
 ?>
 
 <!DOCTYPE html>
@@ -18,8 +22,7 @@ $sql = $conn->query("SELECT * FROM productos");
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comick Burger - Galería</title>
-<link rel="stylesheet" href="css/estilos.css">
-
+<link rel="icon" type="image/png" href="assets/logo1.png">
 <style>
 body {
     background-color: #111;
@@ -113,14 +116,10 @@ header h1 {
 </header>
 
 <div class="container">
-<?php while($row = $sql->fetch_assoc()): ?>
+<?php foreach($productos as $row): ?>
     <div class="card">
-
         <?php 
-        // Ruta final
         $img_final = "assets/" . $row['imagen'];
-
-        // Ruta real del servidor
         $img_server_path = __DIR__ . "/assets/" . $row['imagen'];
 
         if (empty($row['imagen']) || !file_exists($img_server_path)) {
@@ -134,19 +133,13 @@ header h1 {
         <p><?php echo htmlspecialchars($row['descripcion']); ?></p>
         <div class="price">$<?php echo number_format($row['precio'],2); ?> MXN</div>
 
-     <form action="agregar_carrito.php" method="POST">
-    <input type="hidden" name="id" value="<?php echo $row['id_producto']; ?>">
-    <input type="hidden" name="nombre" value="<?php echo htmlspecialchars($row['nombre']); ?>">
-    <input type="hidden" name="precio" value="<?php echo $row['precio']; ?>">
-    <input type="hidden" name="cantidad" value="1">
-
-    <button type="submit" class="btn btn-orange">
-        Agregar al carrito
-    </button>
-</form>
-
+        <form action="agregar_carrito.php" method="POST">
+            <input type="hidden" name="id_producto" value="<?php echo $row['id_producto']; ?>">
+            <input type="hidden" name="cantidad" value="1">
+            <button type="submit" class="btn btn-orange">Agregar al carrito</button>
+        </form>
     </div>
-<?php endwhile; ?>
+<?php endforeach; ?>
 </div>
 
 </body>

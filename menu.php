@@ -1,11 +1,7 @@
 <?php
-session_start();
+require 'includes/session.php';
 
-// Validar que esté logueado
-if (!isset($_SESSION['cliente_id'])) {
-    header("Location: cliente_login.php");
-    exit();
-}
+requireLogin('login.php');
 
 $nombre = $_SESSION['cliente_nombre'] ?? "Cliente";
 ?>

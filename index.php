@@ -1,10 +1,11 @@
+<?php require 'includes/session.php'; ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Comick Burger - Inicio</title>
-<link rel="stylesheet" href="css/estilos.css">
+<link rel="icon" type="image/png" href="assets/logo1.png">
 <style>
 
 body {
@@ -69,14 +70,11 @@ h1 {
     <h1>¡Bienvenido a Comick Burger!</h1>
     
     <div class="nav-buttons">
-    
         <a href="galeria.php">🍔  Galería</a>
         
-        <?php if (isset($_SESSION['id_cliente'])): ?>
-
-            <a href="cerrar.php" class="logout">🚪 Cerrar Sesión</a>
+        <?php if (isLoggedIn()): ?>
+            <a href="cerrar_sesion.php" class="logout">🚪 Cerrar Sesión</a>
         <?php else: ?>
-          
             <a href="registro.php">🔑  Registrarse</a>
         <?php endif; ?>
 

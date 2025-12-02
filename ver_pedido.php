@@ -1,29 +1,26 @@
 <?php
-session_start();
+require 'includes/session.php';
 require 'includes/connect.php';
+require 'includes/helpers.php';
 
-// Verificar sesión
-if (!isset($_SESSION['cliente_id'])) {
-    header("Location: login_registro.php");
-    exit();
-}
+requireLogin('login.php');
 
 $cliente_id = $_SESSION['cliente_id'];
 
-// Verificar que viene un ID
 if (!isset($_GET['id'])) {
-    header("Location: mis_pedidos.php");
-    exit();
+    redirect('mis_pedidos.php');
 }
 
-$id_pedido = intval($_GET['id']);
+$id_pedido = validateNumber($_GET['id'], 1);
 
-// Obtener datos del pedido (validar que sea del cliente)
-$pedido = $conn->query("
-    SELECT * FROM pedidos 
-    WHERE id_pedido = $id_pedido 
-      AND id_cliente = $cliente_id
-");
+if (!$id_pedido) {
+    redirect('mis_pedidos.php');
+}
+
+$stmt = $conn->prepare("SELECT * FROM pedidos WHERE id_pedido = ? AND id_cliente = ?");
+$stmt->bind_param("ii", $id_pedido, $cliente_id);
+$stmt->execute();
+$pedido = $stmt->get_result();
 
 if ($pedido->num_rows == 0) {
     echo "<h2 style='color:white; text-align:center;'>❌ Pedido no encontrado.</h2>";
@@ -32,13 +29,15 @@ if ($pedido->num_rows == 0) {
 
 $p = $pedido->fetch_assoc();
 
-// Obtener productos del pedido
-$detalle = $conn->query("
+$stmt2 = $conn->prepare("
     SELECT pd.*, pr.nombre, pr.imagen, pr.precio 
     FROM pedido_detalle pd
     INNER JOIN productos pr ON pr.id_producto = pd.id_producto
-    WHERE pd.id_pedido = $id_pedido
+    WHERE pd.id_pedido = ?
 ");
+$stmt2->bind_param("i", $id_pedido);
+$stmt2->execute();
+$detalle = $stmt2->get_result();
 ?>
 
 <!DOCTYPE html>

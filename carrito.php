@@ -1,11 +1,8 @@
 <?php
-session_start();
-include 'includes/connect.php';
+require 'includes/session.php';
+require 'includes/connect.php';
 
-if (!isset($_SESSION['cliente_id'])) {
-    header("Location: login.php");
-    exit();
-}
+requireLogin('login.php');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validar acción y datos enviados
@@ -43,7 +40,6 @@ if (empty($carrito)) {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>El Botín - Carrito de Comick Burger</title>
-<link rel="stylesheet" href="css/estilos.css">
 <style>
 body { background-color: #111; color: #fff; font-family: 'Comic Sans MS', cursive; margin:0; padding:0; }
 header { background: #000; border-bottom:6px solid #ff9800; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 5px 10px rgba(0,0,0,0.5);}

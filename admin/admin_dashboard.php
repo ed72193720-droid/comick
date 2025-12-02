@@ -1,15 +1,8 @@
 <?php
-session_start();
-require '../includes/connect.php';
+require __DIR__ . '/../includes/session.php';
+require __DIR__ . '/../includes/connect.php';
 
-// Función de protección
-function check_admin_auth() {
-    if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-        header("Location: admin_login.php");
-        exit();
-    }
-}
-check_admin_auth();
+requireAdmin('admin_login.php');
 
 // CONSULTAS PARA ESTADÍSTICAS
 // Total ventas

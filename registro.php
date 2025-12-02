@@ -1,31 +1,28 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-session_start();
+include_once 'config/config.php';
+require_once 'includes/session.php';
 require 'includes/connect.php';
+require 'includes/helpers.php';
 
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $nombre = sanitizeInput($_POST['nombre'] ?? '', 100);
+    $celular = sanitizeInput($_POST['celular'] ?? '', 20);
+    $direccion = sanitizeInput($_POST['direccion'] ?? '', 200);
+    $email = validateEmail($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
 
-    $nombre = trim($_POST['nombre'] ?? '');
-    $celular = trim($_POST['celular'] ?? '');
-    $direccion = trim($_POST['direccion'] ?? '');
-    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
-    $password = trim($_POST['password'] ?? '');
-    $confirm_password = trim($_POST['confirm_password'] ?? '');
-
-    // Validaciones básicas
     if (empty($nombre) || empty($email) || empty($password) || empty($confirm_password) || empty($celular) || empty($direccion)) {
         $message = "Por favor completa todos los campos.";
     } elseif (!$email) {
         $message = "El correo no es válido.";
+    } elseif (!validatePassword($password)) {
+        $message = "La contraseña debe tener al menos 6 caracteres.";
     } elseif ($password !== $confirm_password) {
         $message = "Las contraseñas no coinciden.";
     } else {
-
-        // Verificar si ya existe ese correo
         $stmt = $conn->prepare("SELECT id_cliente FROM clientes WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -34,36 +31,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($stmt->num_rows > 0) {
             $message = "Ya existe una cuenta con este correo. Intenta iniciar sesión.";
         } else {
-
-            // Insertar nuevo cliente
             $hash = password_hash($password, PASSWORD_DEFAULT);
 
-            $stmt_insert = $conn->prepare(
-                "INSERT INTO clientes (nombre, celular, direccion, email, password)
-                 VALUES (?, ?, ?, ?, ?)"
-            );
+            $stmt_insert = $conn->prepare("INSERT INTO clientes (nombre, celular, direccion, email, password) VALUES (?, ?, ?, ?, ?)");
+            $stmt_insert->bind_param("sssss", $nombre, $celular, $direccion, $email, $hash);
 
-            if ($stmt_insert === false) {
-                $message = "Error en la preparación de la consulta: " . $conn->error;
+            if ($stmt_insert->execute()) {
+                $cliente = [
+                    'id_cliente' => $stmt_insert->insert_id,
+                    'nombre' => $nombre,
+                    'email' => $email
+                ];
+                setClienteSession($cliente);
+
+                redirect(isset($_SESSION['carrito']) && !empty($_SESSION['carrito']) ? 'carrito.php' : 'galeria.php');
             } else {
-                $stmt_insert->bind_param("sssss", $nombre, $celular, $direccion, $email, $hash);
-
-                if ($stmt_insert->execute()) {
-                    $_SESSION['cliente_id'] = $stmt_insert->insert_id;
-                    $_SESSION['cliente_nombre'] = $nombre;
-
-                    if (isset($_SESSION['carrito']) && !empty($_SESSION['carrito'])) {
-                        header("Location: carrito.php");
-                    } else {
-                        header("Location: galeria.php");
-                    }
-                    exit();
-                } else {
-                    $message = "Error al registrar el usuario.";
-                }
-
-                $stmt_insert->close();
+                $message = "Error al registrar el usuario.";
             }
+
+            $stmt_insert->close();
         }
 
         $stmt->close();
@@ -75,8 +61,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>Registro - Comick Burger</title>
-<link rel="stylesheet" href="css/estilos.css">
-
 <style>
 /* Diseño igual al login */
 body {

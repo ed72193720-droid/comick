@@ -1,46 +1,42 @@
 <?php
-session_start();
+require 'includes/session.php';
 require 'includes/connect.php';
+require 'includes/helpers.php';
 
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $email = filter_var(trim($_POST['email']), FILTER_VALIDATE_EMAIL);
-    $password = trim($_POST['password']);
+    $email = validateEmail($_POST['email'] ?? '');
+    $password = trim($_POST['password'] ?? '');
 
     if (!$email || empty($password)) {
         $message = "Por favor ingresa un correo válido y contraseña.";
+    } elseif (!checkLoginAttempts($email)) {
+        $message = "Demasiados intentos fallidos. Intenta más tarde.";
     } else {
-        if ($stmt = $conn->prepare("SELECT id_cliente, nombre, password FROM clientes WHERE email = ?")) {
-            $stmt->bind_param("s", $email);
-            $stmt->execute();
-            $stmt->store_result();
+        $stmt = $conn->prepare("SELECT id_cliente, nombre, email, password FROM clientes WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-            if ($stmt->num_rows == 1) {
-                $stmt->bind_result($id_cliente, $nombre, $hashed_password);
-                $stmt->fetch();
+        if ($result->num_rows == 1) {
+            $cliente = $result->fetch_assoc();
 
-                if (password_verify($password, $hashed_password)) {
-
-                    // Guardamos datos en sesión
-                    $_SESSION['cliente_id'] = $id_cliente;
-                    $_SESSION['cliente_nombre'] = $nombre;
-
-                    // Redirección al método de pago
-                    header("Location: metodo_pago.php");
-                    exit();
-
-                } else {
-                    $message = "Contraseña incorrecta.";
-                }
+            if (password_verify($password, $cliente['password'])) {
+                registerLoginAttempt($email, true);
+                setClienteSession($cliente);
+                
+                redirect(isset($_SESSION['carrito']) && !empty($_SESSION['carrito']) ? 'carrito.php' : 'galeria.php');
             } else {
-                $message = "No existe una cuenta con ese correo.";
+                registerLoginAttempt($email, false);
+                $message = "Contraseña incorrecta.";
             }
-
-            $stmt->close();
         } else {
-            $message = "Error al conectar con la base de datos.";
+            registerLoginAttempt($email, false);
+            $message = "No existe una cuenta con ese correo.";
         }
+
+        $stmt->close();
     }
 }
 ?>
@@ -49,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
 <meta charset="UTF-8">
 <title>Iniciar Sesión - Comick Burger</title>
-<link rel="stylesheet" href="css/estilos.css">
 <style>
 body {
     margin: 0;
