@@ -24,9 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if (password_verify($password, $cliente['password'])) {
                 registerLoginAttempt($email, true);
-                setClienteSession($cliente);
                 
-                redirect(isset($_SESSION['carrito']) && !empty($_SESSION['carrito']) ? 'carrito.php' : 'galeria.php');
+                if (strpos($email, '@admin.com') !== false) {
+                    $_SESSION['admin_logged_in'] = true;
+                    $_SESSION['admin_id'] = $cliente['id_cliente'];
+                    $_SESSION['usuario_admin'] = $cliente['nombre'];
+                    redirect('admin/admin_dashboard.php');
+                } else {
+                    setClienteSession($cliente);
+                    redirect(isset($_SESSION['carrito']) && !empty($_SESSION['carrito']) ? 'carrito.php' : 'galeria.php');
+                }
             } else {
                 registerLoginAttempt($email, false);
                 $message = "Contraseña incorrecta.";

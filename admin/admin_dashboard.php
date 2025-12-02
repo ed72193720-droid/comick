@@ -45,7 +45,7 @@ body { background-color: #1a1a1a; color: #fff; font-family: 'Comic Sans MS', cur
 
 <div class="header-hq">
     <h1>COMICK BURGER HQ - DASHBOARD</h1>
-    <a href="admin_logout.php">CERRAR SESIÓN (¡ESCAPE!)</a>
+    <a href="../login.php">CERRAR SESIÓN (¡ESCAPE!)</a>
 </div>
 
 <div class="sidebar">

@@ -97,6 +97,26 @@ textarea:focus, input:focus, select:focus { border-color:#ff9800; }
 .success-box { text-align:center; padding:30px; background:#1e88e5; border-radius:15px; border:5px solid #ffeb3b; box-shadow:10px 10px 0 #e53935; }
 .success-box h2 { color:#ffeb3b; margin-top:0; }
 .success-box a { margin-top:20px; background-color:#ff9800; color:#000; padding:10px 20px; text-decoration:none; border-radius:8px; font-weight:bold; display:inline-block; box-shadow:3px 3px 0 #000; }
+
+.modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; }
+.modal-overlay.active { display:flex; }
+.modal-content { background:rgba(0,0,0,0.95); border:6px solid #ffeb3b; border-radius:20px; padding:30px; max-width:500px; width:90%; box-shadow:12px 12px 0 #e53935; animation:modalAppear 0.3s ease-out; }
+@keyframes modalAppear { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+.modal-header { color:#00bcd4; font-size:28px; text-shadow:2px 2px #ff9800; margin-bottom:20px; text-align:center; border-bottom:2px dashed #ff9800; padding-bottom:10px; }
+.modal-field { margin-bottom:15px; }
+.modal-label { color:#ff9800; font-weight:bold; display:block; margin-bottom:8px; }
+.modal-input { width:100%; padding:12px; border:3px solid #00bcd4; border-radius:8px; background:#333; color:#fff; box-sizing:border-box; font-size:16px; box-shadow:3px 3px 0 #ffeb3b; transition:border-color 0.2s; }
+.modal-input:focus { border-color:#ff9800; outline:none; }
+.modal-inputs-row { display:flex; gap:10px; }
+.modal-inputs-row .modal-input { flex:1; }
+.modal-buttons { display:flex; gap:10px; margin-top:25px; }
+.modal-btn { flex:1; padding:15px; border:none; border-radius:10px; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:4px 4px 0 #000; transition:0.2s; }
+.modal-btn-confirm { background:#28a745; color:#fff; }
+.modal-btn-confirm:hover { background:#218838; transform:translateY(-2px); }
+.modal-btn-cancel { background:#e53935; color:#fff; }
+.modal-btn-cancel:hover { background:#c1392b; transform:translateY(-2px); }
+.info-sandbox { background:#1b3a57; border-left:5px solid #00bcd4; padding:12px; margin-bottom:15px; font-size:14px; color:#a0d8ff; border-radius:5px; }
+
 </style>
 </head>
 <body>
@@ -126,17 +146,173 @@ textarea:focus, input:focus, select:focus { border-color:#ff9800; }
 
             <div class="section-title">2. SELECCIONA TU CÓDIGO DE PAGO</div>
             <div class="radio-group">
-                <label><input type="radio" name="metodo_pago" value="Tarjeta" <?php if($metodo_pago=="Tarjeta") echo "checked"; ?>> Tarjeta (Visa/MasterHero)</label>
-                <label><input type="radio" name="metodo_pago" value="Efectivo" <?php if($metodo_pago=="Efectivo") echo "checked"; ?>> Efectivo (Pago al Recibir)</label>
-                <label><input type="radio" name="metodo_pago" value="Transferencia" <?php if($metodo_pago=="Transferencia") echo "checked"; ?>> Transferencia (Cripto-Moneda)</label>
+                <label><input type="radio" name="metodo_pago" value="Tarjeta" onclick="abrirModalTarjeta()" <?php if($metodo_pago=="Tarjeta") echo "checked"; ?>> Tarjeta (Visa/MasterHero)</label>
+                <label><input type="radio" name="metodo_pago" value="Efectivo" onclick="abrirModalEfectivo()" <?php if($metodo_pago=="Efectivo") echo "checked"; ?>> Efectivo (Pago al Recibir)</label>
+                <label><input type="radio" name="metodo_pago" value="Transferencia" onclick="abrirModalTransferencia()" <?php if($metodo_pago=="Transferencia") echo "checked"; ?>> Transferencia (Cripto-Moneda)</label>
             </div>
 
-            <button type="submit" class="btn-confirm">¡ZAP! ENVIAR ORDEN Y PAGAR</button>
+            <button type="submit" class="btn-confirm" id="btn-pagar" style="display: none;">¡ZAP! ENVIAR ORDEN Y PAGAR</button>
             <p style="margin-top:15px;"><a href="carrito.php" style="color:#00bcd4;">&larr; Revisar el Botín (Carrito)</a></p>
         </form>
     <?php endif; ?>
 
 </div>
+
+<div id="modal-tarjeta" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">💳 TARJETA BANCARIA</div>
+        <div class="info-sandbox">⚠️ Modo Sandbox - Ingresa cualquier número de tarjeta válido para pruebas</div>
+        
+        <div class="modal-field">
+            <label class="modal-label">Número de Tarjeta</label>
+            <input type="text" id="tarjeta-numero" class="modal-input" placeholder="1234 5678 9012 3456" maxlength="19" inputmode="numeric">
+        </div>
+        
+        <div class="modal-field">
+            <label class="modal-label">Nombre del Titular</label>
+            <input type="text" id="tarjeta-titular" class="modal-input" placeholder="NOMBRE APELLIDO">
+        </div>
+        
+        <div class="modal-inputs-row">
+            <div class="modal-field" style="flex:1;">
+                <label class="modal-label">Vencimiento (MM/AA)</label>
+                <input type="text" id="tarjeta-vencimiento" class="modal-input" placeholder="12/25" maxlength="5">
+            </div>
+            <div class="modal-field" style="flex:1;">
+                <label class="modal-label">CVV</label>
+                <input type="text" id="tarjeta-cvv" class="modal-input" placeholder="123" maxlength="4" inputmode="numeric">
+            </div>
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-confirm" onclick="confirmarTarjeta()">✓ CONFIRMAR</button>
+            <button class="modal-btn modal-btn-cancel" onclick="cerrarModal('modal-tarjeta')">✕ CANCELAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-efectivo" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">💵 PAGO EN EFECTIVO</div>
+        <div class="info-sandbox">⚠️ Modo Sandbox - Confirma para continuar con tu orden</div>
+        
+        <div style="background:#2b2b2b; padding:15px; border-radius:8px; border-left:5px solid #ffeb3b; margin-bottom:20px;">
+            <p style="color:#ffeb3b; margin:0 0 10px 0; font-weight:bold;">Instrucciones de Pago:</p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">✓ El pago se realiza al recibir tu orden</p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">✓ Ten el dinero exacto listo</p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">✓ El repartidor confirmará el monto</p>
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-confirm" onclick="confirmarEfectivo()">✓ CONFIRMAR PAGO EN EFECTIVO</button>
+            <button class="modal-btn modal-btn-cancel" onclick="cerrarModal('modal-efectivo')">✕ CANCELAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-transferencia" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">🔗 TRANSFERENCIA CRYPTO</div>
+        <div class="info-sandbox">⚠️ Modo Sandbox - Ingresa un ID de transacción para continuar</div>
+        
+        <div style="background:#2b2b2b; padding:15px; border-radius:8px; border-left:5px solid #00bcd4; margin-bottom:20px;">
+            <p style="color:#00bcd4; margin:0 0 10px 0; font-weight:bold;">Información de Transferencia:</p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">Billetera: <span style="color:#ffeb3b; font-family:monospace;">1A1z7agoat2GPFH9khqjhjgsjh2jk</span></p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">Red: Bitcoin Network</p>
+            <p style="color:#fff; margin:5px 0; font-size:14px;">Confirma tu pago con el ID de transacción</p>
+        </div>
+        
+        <div class="modal-field">
+            <label class="modal-label">ID de Transacción (TX Hash)</label>
+            <input type="text" id="transferencia-id" class="modal-input" placeholder="abc123def456..." maxlength="100">
+        </div>
+        
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-confirm" onclick="confirmarTransferencia()">✓ CONFIRMAR TRANSFERENCIA</button>
+            <button class="modal-btn modal-btn-cancel" onclick="cerrarModal('modal-transferencia')">✕ CANCELAR</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function abrirModalTarjeta() {
+    document.getElementById('modal-tarjeta').classList.add('active');
+}
+
+function abrirModalEfectivo() {
+    document.getElementById('modal-efectivo').classList.add('active');
+}
+
+function abrirModalTransferencia() {
+    document.getElementById('modal-transferencia').classList.add('active');
+}
+
+function cerrarModal(modalId) {
+    document.getElementById(modalId).classList.remove('active');
+    document.querySelectorAll('input[name="metodo_pago"]').forEach(r => r.checked = false);
+}
+
+function confirmarTarjeta() {
+    const numero = document.getElementById('tarjeta-numero').value.replace(/\s+/g, '');
+    const titular = document.getElementById('tarjeta-titular').value.trim();
+    const vencimiento = document.getElementById('tarjeta-vencimiento').value.trim();
+    const cvv = document.getElementById('tarjeta-cvv').value.trim();
+
+    if (!numero || numero.length < 13) {
+        alert('Número de tarjeta inválido');
+        return;
+    }
+    if (!titular) {
+        alert('Nombre del titular es requerido');
+        return;
+    }
+    if (!vencimiento || !vencimiento.includes('/')) {
+        alert('Formato de vencimiento inválido (MM/AA)');
+        return;
+    }
+    if (!cvv || cvv.length < 3) {
+        alert('CVV inválido');
+        return;
+    }
+
+    document.getElementById('modal-tarjeta').classList.remove('active');
+    document.getElementById('btn-pagar').style.display = 'block';
+    document.querySelector('input[value="Tarjeta"]').checked = true;
+}
+
+function confirmarEfectivo() {
+    document.getElementById('modal-efectivo').classList.remove('active');
+    document.getElementById('btn-pagar').style.display = 'block';
+    document.querySelector('input[value="Efectivo"]').checked = true;
+}
+
+function confirmarTransferencia() {
+    const txId = document.getElementById('transferencia-id').value.trim();
+
+    if (!txId || txId.length < 10) {
+        alert('ID de transacción inválido');
+        return;
+    }
+
+    document.getElementById('modal-transferencia').classList.remove('active');
+    document.getElementById('btn-pagar').style.display = 'block';
+    document.querySelector('input[value="Transferencia"]').checked = true;
+}
+
+document.getElementById('tarjeta-numero').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\s+/g, '');
+    let formatted = value.match(/.{1,4}/g) ? value.match(/.{1,4}/g).join(' ') : value;
+    e.target.value = formatted;
+});
+
+document.getElementById('tarjeta-vencimiento').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    e.target.value = value;
+});
+</script>
 
 </body>
 </html>
